@@ -1,0 +1,56 @@
+import matplotlib.pyplot as plt
+
+def plot_schedule_with_timelags(ordonnancement, d, tlagsmin):
+    n = len(ordonnancement)
+    m = len(d)
+
+    fig, ax = plt.subplots(figsize=(12, 0.6 * m + 2))
+
+    start_times = [[0] * n for _ in range(m)]
+
+    for j in range(n):
+        task = ordonnancement[j]
+        for k in range(m):
+            if j == 0 and k == 0:
+                start = 0
+            elif k == 0:
+                prev_task = ordonnancement[j - 1]
+                start = start_times[k][j - 1] + d[k][prev_task]
+            elif j == 0:
+                start = start_times[k - 1][j] + d[k - 1][task] + tlagsmin[k][task]
+            else:
+                prev_task = ordonnancement[j - 1]
+                option1 = start_times[k][j - 1] + d[k][prev_task]
+                option2 = start_times[k - 1][j] + d[k - 1][task] + tlagsmin[k][task]
+                start = max(option1, option2)
+
+            start_times[k][j] = start
+            ax.barh(
+                y=f"Machine {k + 1}",
+                width=d[k][task],
+                left=start,
+                height=0.6,
+                align='center',
+                edgecolor='black',
+                color=plt.cm.tab20(task % 20)
+            )
+            ax.text(
+                start + d[k][task] / 2,
+                k,
+                f"T{task + 1}",
+                va='center',
+                ha='center',
+                fontsize=8,
+                color='white'
+            )
+
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Machines")
+    ax.set_title("Permutation Flowshop Schedule with Time Lags")
+    ax.invert_yaxis()
+    ax.grid(True, linestyle="--", alpha=0.4)
+    plt.tight_layout()
+    plt.show()
+
+# Appel de la fonction
+plot_schedule_with_timelags([x - 1 for x in ordonnancement], d, tlagsmin)
